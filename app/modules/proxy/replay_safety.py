@@ -422,6 +422,16 @@ def responses_input_suffix_matches_pending_tool_calls(
         and _fresh_developer_interleave_is_bounded(suffix, index=1)
     ):
         suffix = [suffix[0], suffix[2]]
+    # A goal restart or steer can append user input after a fully settled
+    # prior-response tool batch. Prove that batch independently: new input
+    # must not stand in for a missing parallel call or interrupt its results.
+    first_followup = next(
+        (index for index, item in enumerate(suffix) if isinstance(item, dict) and _is_fresh_followup_input(item)),
+        len(suffix),
+    )
+    if not all(isinstance(item, dict) and _is_fresh_followup_input(item) for item in suffix[first_followup:]):
+        return False
+    suffix = suffix[:first_followup]
     if not all(
         isinstance(item, dict)
         and isinstance(item.get("type"), str)
