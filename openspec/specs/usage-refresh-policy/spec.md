@@ -2264,11 +2264,12 @@ session/account invalidation MUST NOT qualify for this recovery.
 - **WHEN** the fresh row is absent, not `reauth_required`, or has unknown or elapsed access-token expiry
 - **THEN** the ordinary preflight propagates its original refresh failure
 
-#### Scenario: Authentication rejection remains authoritative
+#### Scenario: Authentication rejection on an ordinary preflight is authoritative
 
-- **WHEN** the resource endpoint rejects the retained access token
-- **THEN** forced refresh recovery MUST NOT return that token as a successful refresh
+- **WHEN** an ordinary preflight retained the access token and the resource endpoint rejects it
+- **THEN** ordinary preflight recovery MUST NOT return that token as a successful refresh
 - **AND** the existing authentication failure or safe failover path applies
+- **AND** forced callers, which are excluded from recovery, receive the authentication failure directly
 
 #### Scenario: Non-refresh-credential failures do not qualify
 
