@@ -622,6 +622,12 @@ def _is_retained_response_message(item: Mapping[str, JsonValue]) -> bool:
 
 def _is_fresh_followup_input(item: Mapping[str, JsonValue]) -> bool:
     item_type = item.get("type")
+    if item.get("id") not in (None, ""):
+        return False
+    if not _internal_chat_message_metadata_is_account_neutral(item.get(_INTERNAL_CHAT_MESSAGE_METADATA_FIELD)):
+        return False
+    if not _input_item_has_only_known_fields(item, item_type if isinstance(item_type, str) else None):
+        return False
     if _is_one_of(item_type, {"input_file", "input_image", "input_text"}):
         return _input_content_part_is_self_contained(item, allow_output=False)
     return (

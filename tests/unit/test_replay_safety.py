@@ -1733,6 +1733,54 @@ def test_full_resend_retained_output_tolerates_fresh_developer_after_user() -> N
     )
 
 
+@pytest.mark.parametrize(
+    "trailing_item",
+    [
+        pytest.param(
+            {
+                "type": "message",
+                "id": "msg_stray",
+                "role": "user",
+                "content": [{"type": "input_text", "text": "next question"}],
+            },
+            id="trailing-message-with-id",
+        ),
+        pytest.param(
+            {
+                "type": "message",
+                "role": "user",
+                "unexpected_field": "x",
+                "content": [{"type": "input_text", "text": "next question"}],
+            },
+            id="trailing-message-with-unknown-field",
+        ),
+    ],
+)
+def test_full_resend_retained_output_rejects_trailing_item_with_id_or_unknown_field(
+    trailing_item: dict[str, JsonValue],
+) -> None:
+    stored_input: list[JsonValue] = [{"role": "user", "content": "first question"}]
+    suffix: list[JsonValue] = [
+        {
+            "type": "message",
+            "id": "msg_answer",
+            "role": "assistant",
+            "phase": "final_answer",
+            "status": "completed",
+            "content": [{"type": "output_text", "text": "prior answer"}],
+        },
+        trailing_item,
+    ]
+
+    assert (
+        responses_input_suffix_retains_prior_output(
+            [*stored_input, *suffix],
+            stored_count=len(stored_input),
+        )
+        is False
+    )
+
+
 def test_full_resend_retained_output_accepts_canonical_lite_prefix_developer_without_pending_call() -> None:
     stored_input: list[JsonValue] = [
         {
